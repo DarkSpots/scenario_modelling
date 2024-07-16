@@ -1,13 +1,14 @@
-#PC1 Lower is richer
-#PC2 lower has more protection
-# load("C:/Users/kdh10kg/Documents/github/darkspots_shiny/darkspots_shiny/app_data.RData")
 library(plotly)
 library(tidyverse)
 library(truncnorm)
 library(sf)
 
-# load the data
-load("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/REV_app_data.RData")
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
+
+
+load(paste0(basepath,"output/STEP_01.RData"))
 
 data =  st_drop_geometry(tdwg3)
 
@@ -16,7 +17,10 @@ data =  st_drop_geometry(tdwg3)
 #                        FUNCTIONS
 #
 #######################################################################################################
+
+
 normalise <- function(x){(x - min(x,na.rm=T))/ ((max(x,na.rm=T) - min(x,na.rm=T)) + 0.01)}
+
 normalize_fixed <- function(x, min_val = 0, max_val = 1000) {
   return ((x - min_val) / (max_val - min_val))
 }
@@ -137,13 +141,13 @@ tdwg3 = tdwg3 %>% left_join(data)
 #####################################################
 # Save
 
-# save(tdwg3, file = paste0("C:/Users/kdh10kg/Documents/github/darkspots_shiny/darkspots_shiny/REV_app_data.RData"))
-save(tdwg3, file = paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/REV_app_data.RData"))
-write.csv(st_drop_geometry(tdwg3), paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/variables_table.csv"))
+save(tdwg3, file = paste0(basepath, "output/STEP_04.RData"))
+write.csv(st_drop_geometry(tdwg3), paste0(basepath, "output/STEP_04.csv"))
 
 
-# save to shp but note that long data file names don't save properly so best to load app_data.R
-st_write(tdwg3, 'C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/model_outputs.shp',layer = NULL, delete_layer = TRUE)
+# # save to shp but note that long data file names don't save properly so best to load app_data.R
+# st_write(tdwg3, paste0(basepath, "output/model_outputs.shp"),
+#          layer = NULL, delete_layer = TRUE)
 
 
 

@@ -1,21 +1,44 @@
 library(tidyverse)
-library(vdemdata)
 library(rworldmap)
 library(sf)
+library(MazamaSpatialUtils)
 
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/"
 
-# functions
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
+
+#### FUNCTIONS
+
+# Normalise
 normalise <- function(x){(x - min(x,na.rm=T))/ ((max(x,na.rm=T) - min(x,na.rm=T)) + 0.01)}
 
+# apply sum to matrix
+`%+%` <- function(x, y, na.rm=TRUE)  mapply(sum, x, y, MoreArgs = list(na.rm = na.rm))
+
+# RESCALE THE DATA
+SAR <- function(x,y, ref_area_km2=10000){ # Species-Area-Regression
+  # glm
+  mod <- stats::glm(x ~ log(y), family=poisson(link="log"), start = c(0.5, 0.5))
+  # non linear regression
+  mod2 <- stats::nls(x ~ c*y^z, start=list(c=exp(coef(mod)[1]), z=coef(mod)[2]))
+  z=coef(mod2)[2] # scaling area exponent
+  (x*ref_area_km2^z)/(y^z)
+}
+
+# get mean without NAs
+my.mean = function(x) ifelse( !all(is.na(x)), mean(x, na.rm=T), NA)
+
+
+##########################################
 
 #Load the tdwg shp which is the base for everything
-tdwg3 <- st_read(dsn = paste0(basepath, "REVISION_1/level3"),
+tdwg3 <- st_read(dsn = paste0(basepath, "input/level3"),
                  layer = "level3")
 
 
 # map country codes to tdwg
-wgsrpd_mapping = read.csv(paste0(basepath,"country_tdwg3_map_KD.csv"))
+wgsrpd_mapping = read.csv(paste0(basepath,"input/country_tdwg3_mapping.csv"))
 wgsrpd_mapping$ISO_code[is.na(wgsrpd_mapping$ISO_code)] <-"NA"
 
 
@@ -24,14 +47,12 @@ tdwg3 <- tdwg3 %>%
 
 
 # Add descriptions and discoveries from LiteRate
-discoveries = read.csv(paste0(basepath,"skyline_model/v6/Species_sampling_rates_all.csv"))#Discovery_rates.csv"))
-descriptions = read.csv(paste0(basepath,"skyline_model/v6/Species_description_rates_all.csv"))#Description_rates.csv"))
-left_to_sample = read.csv(paste0(basepath,"skyline_model/v6/Species_to_be_sampled_all.csv"))
+discoveries = read.csv(paste0(basepath,"input/literate/Species_sampling_rates_all.csv"))
+descriptions = read.csv(paste0(basepath,"input/literate/Species_description_rates_all.csv"))
+left_to_sample = read.csv(paste0(basepath,"input/literate/Species_to_be_sampled_all.csv"))
 
 
 # Get mean over last 5 years
-my.mean = function(x) ifelse( !all(is.na(x)), mean(x, na.rm=T), NA)
-
 discoveries[, "mean"] <- apply(discoveries[, (ncol(discoveries)-21):ncol(discoveries)],1,#c("X2018","X2019","X2020","X2021","X2022")], 1,
                                my.mean)
 descriptions[, "mean"] <- apply(descriptions[, (ncol(descriptions)-21):ncol(descriptions)],1,#c("X2018","X2019","X2020","X2021","X2022")], 1,
@@ -56,9 +77,9 @@ tdwg3 =  tdwg3 %>%
 
 
 ##################################################
-## Get biodiversity data
+# Get the species and what year they were first described in GBIF
 
-path = paste0(basepath,"wcvp_descriptions_discoveries/")
+path = paste0(basepath,"input/wcvp_descriptions_discoveries/")
 files  = list.files(path, full.names=TRUE)
 tot_exp_spp_wcvp = NA
 left_spp_wcvp = NA
@@ -96,7 +117,7 @@ tdwg3 <- tdwg3 %>% left_join(as.data.frame(df)[c("LEVEL3_COD", "Long","Lat")])
 tdwg3 = tdwg3 %>% mutate(ISO_code_3 = MazamaSpatialUtils::iso2ToIso3(tdwg3$ISO_code))
 
 
-SDG_goals = read.csv("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/spatial/DARKSPOTS/country_year_sdg_metrics.csv")
+SDG_goals = read.csv(paste0(basepath,"input/country_year_sdg_metrics.csv"))
 SDG_goals = SDG_goals[,1:24]
 
 # subset 2021 for now
@@ -109,32 +130,16 @@ tdwg3 =  tdwg3 %>%
 
 
 #################################################################
-# load in Ian's simulations
+# Output from the time-to-event model
 
-shortfalls_raw <- read.csv("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REV_shortfalls_not_rescaled_predictions_with_uncertainty_bounds.csv")
-shortfalls_raw <- read.csv("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/old_REV_shortfalls_not_rescaled_predictions_with_uncertainty_bounds.csv")
-
-
+shortfalls_raw <- read.csv(paste0(basepath,"input/time-to-event.csv"))
 outliers= c("NWG","BOR","ECU", "BOL","BZN","PAN")
 
-# remove the old columns that weren't working
+# remove the old columns
 shortfalls_raw = shortfalls_raw[,c(1:5,10:13)]
 
-
-# RESCALE THE DATA
-# write the function
-SAR <- function(x,y, ref_area_km2=10000){ # Species-Area-Regression
-  # glm
-  mod <- stats::glm(x ~ log(y), family=poisson(link="log"), start = c(0.5, 0.5))
-  # non linear regression
-  mod2 <- stats::nls(x ~ c*y^z, start=list(c=exp(coef(mod)[1]), z=coef(mod)[2]))
-  z=coef(mod2)[2] # scaling area exponent
-  (x*ref_area_km2^z)/(y^z)
-}
-
-
-
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+# areas are used to rescale the shortfalls per areas
+areas = read.csv(paste0(basepath, "input/twdg3_land_area.csv"))
 
 # rescale the shortfalls
 shortfalls_rescaled = shortfalls_raw
@@ -179,8 +184,6 @@ for (coli in replace_cols){
 
 
 ### Only normalise the raw data
-
-`%+%` <- function(x, y, na.rm=TRUE)  mapply(sum, x, y, MoreArgs = list(na.rm = na.rm))
 
 df1 = c(shortfalls_raw$SR_unknown_LL,
         shortfalls_raw$SR_unknown_sd,
@@ -235,4 +238,5 @@ tdwg3 =  tdwg3 %>%
   left_join(shortfalls_rescaled)
 
 
-save(tdwg3, file = paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/REV_app_data.RData"))
+save(tdwg3, file = paste0(basepath,"output/STEP_00.RData"))
+

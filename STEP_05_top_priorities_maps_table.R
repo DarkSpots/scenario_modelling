@@ -10,8 +10,12 @@ library(ggpubr)
 library(zoo)
 
 
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/"
-load( file = paste0(basepath, "REV_app_data.RData"))
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
+
+
+load(paste0(basepath, "output/STEP_04.RData"))
 
 
 ##############################################################################
@@ -90,7 +94,7 @@ darkspots.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 
 #####################################################################
 # write.csv(grid.DT, "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-grid.DT = read.csv( "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
+grid.DT = read.csv(paste0(basepath,"input/gridDT.csv"))
 
 grid.DT <- data.table::as.data.table(grid.DT)
 
@@ -107,7 +111,7 @@ colours_map = c("#2a9bc1","#483737","#cccccc", "#84cfbb")
 ##########################################################################################
 ##########################################################################################
 
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+areas = read.csv(paste0(basepath, "input/twdg3_land_area.csv"))
 
 darkspots.prj$linnean_yrs = - normalise(darkspots.prj$discoveries_time_diff)#- normalise(darkspots.prj$dscvrs_t_)
 darkspots.prj$wallacean_yrs = - normalise(darkspots.prj$descriptions_time_diff)#- normalise(darkspots.prj$dscrptns_t)
@@ -124,8 +128,8 @@ complete_rows = !is.na(darkspots.prj$SR_nogeoloc)
 darkspots.prj$wallacean_sc = darkspots.prj$SR_nogeoloc
 darkspots.prj$wallacean_sc[complete_rows] = normalise(SAR(darkspots.prj$SR_nogeoloc[complete_rows],
                                                           areas$land_area[complete_rows]))
-total_area = 24922455#24922455
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "tdwg_shortfall_index_land_area.csv"))
+total_area = 24922455
+areas = read.csv(paste0(basepath, "input/tdwg_shortfall_index_land_area.csv")) # note that this overwrites the old areas variable
 colnames(areas) = c( "LEVEL3_COD", "area", "index")
 
 darkspots.prj = darkspots.prj %>% left_join(areas[c( "LEVEL3_COD", "area")])
@@ -266,12 +270,6 @@ ggarrange(map1,map2,map3,
 
 
 
-ggsave(paste0(basepath, "maps_1-9_top.pdf"),
-       width = 80, height = 50, units = "cm")
-
-
-
-
 ####################################################################################
 # now do a table of priorities
 
@@ -314,10 +312,6 @@ gg<- ggplot(data2, aes(x=factor(Index), y=Series, fill=Value), show.legend = FAL
 
 
 gg
-
-ggsave(paste0(basepath, "scenario_matrix_1-9_top.pdf"),
-       width = 20, height = 8, units = "cm")
-
 
 
 #### MAP EACH SCENARIO
@@ -402,8 +396,10 @@ nrow=2,ncol=1, heights=c(1,0.5))
 
 
 
-ggsave(paste0(basepath, "top_priorities_panels.png"),
+ggsave(paste0(basepath, "output/Figure5.png"),
        width = 25, height = 25, units = "cm", bg="white")
+ggsave(paste0(basepath, "output/Figure5.pdf"),
+       width = 25, height = 25, units = "cm")
 
 
 #=============================================================================================
@@ -502,9 +498,6 @@ ggarrange(map1,map2,map3,
 
 
 
-ggsave(paste0(basepath, "maps_1-9_top_sc.pdf"),
-       width = 80, height = 50, units = "cm")
-
 
 
 
@@ -531,7 +524,7 @@ data <- data[1:50,]
 
 # priorities = priorities[priorities$freq >=6.05,]
 
-library(zoo)
+
 data2= fortify.zoo(zoo(data[2:(ncol(data)-2)]), melt = TRUE)
 data2$Label = data$LEVEL3_COD[data2$Index]
 data2$Value[is.na(data2$Value)] = "grey"
@@ -552,8 +545,7 @@ gg<- ggplot(data2, aes(x=factor(Index), y=Series, fill=Value), show.legend = FAL
 
 gg
 
-ggsave(paste0(basepath, "scenario_matrix_1-9_top_sc.pdf"),
-       width = 20, height = 8, units = "cm")
+
 
 
 
@@ -639,5 +631,8 @@ nrow=2,ncol=1, heights=c(1,0.5))
 
 
 
-ggsave(paste0(basepath, "top_priorities_panels_sc.png"),
+ggsave(paste0(basepath, "output/FigureS13.png"),
        width = 25, height = 25, units = "cm", bg="white")
+ggsave(paste0(basepath, "output/FigureS13.pdf"),
+       width = 25, height = 25, units = "cm")
+

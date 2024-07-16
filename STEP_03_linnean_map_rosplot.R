@@ -6,8 +6,12 @@ library(sf)
 require(tmap)
 library(dplyr)
 
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/"
-load( file = paste0(basepath, "REV_app_data.RData"))
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
+
+load(paste0(basepath,"output/STEP_01.RData"))
+
 
 
 ##############################################################################
@@ -80,9 +84,7 @@ darkspots.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 
 
 #####################################################################
-# write.csv(grid.DT, "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-grid.DT = read.csv( "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-
+grid.DT = read.csv(paste0(basepath,"input/gridDT.csv"))
 grid.DT <- data.table::as.data.table(grid.DT)
 
 
@@ -92,7 +94,7 @@ grid.DT <- data.table::as.data.table(grid.DT)
 # Normalise data for manual bivariate map
 ##########################################################################################
 ##########################################################################################
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+areas = read.csv(paste0(basepath,"input/twdg3_land_area.csv"))
 
 
 
@@ -153,8 +155,6 @@ map1 <- ggplot() +
   ) +
   scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Blues"))+
   scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Blues"))+
-  # scale_fill_gradient2(high = "#6eabbd", mid = "#bfd3d9", low ="#e8e8e8" , midpoint = 0.6)+#mid = "yellow", #use 2 for 3 scale , midpoint = 150
-  # scale_color_gradient2(high = "#6eabbd", mid = "#bfd3d9", low ="#e8e8e8" , midpoint = 0.6)+#, midpoint = .02 #mid = "yellow", , midpoint = 150
   guides(color = "none") +
   bi_theme() +
   geom_path(data = grid.DT[(long %in% c(-180,180) & region == "NS")
@@ -473,8 +473,8 @@ ggarrange(finalPlot1, p1 , finalPlot2, p2 ,
           font.label = list(size = 30),
           ncol = 2, nrow = 2, widths = c(1, 0.5))
 
-ggsave(paste0(basepath, "linnean.pdf"),  width = 40, height = 30, units = "cm")
-ggsave(paste0(basepath, "linnean.png"),  width = 40, height = 30, units = "cm",bg="white")
+ggsave(paste0(basepath, "output/FigureS6.pdf"),  width = 40, height = 30, units = "cm")
+ggsave(paste0(basepath, "output/FigureS6.png"),  width = 40, height = 30, units = "cm",bg="white")
 
 
 
@@ -819,8 +819,8 @@ ggarrange(finalPlot1, p1 , finalPlot2, p2 ,
           font.label = list(size = 30),
           ncol = 2, nrow = 2, widths = c(1, 0.5))
 
-ggsave(paste0(basepath, "wallacean.pdf"),  width = 40, height = 30, units = "cm")
-ggsave(paste0(basepath, "wallacean.png"),  width = 40, height = 30, units = "cm",bg="white")
+ggsave(paste0(basepath, "output/FigureS7.pdf"),  width = 40, height = 30, units = "cm")
+ggsave(paste0(basepath, "output/FigureS7.png"),  width = 40, height = 30, units = "cm",bg="white")
 
 
 

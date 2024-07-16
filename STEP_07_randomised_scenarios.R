@@ -5,8 +5,13 @@ library(sf)
 plot.new()
 par(mfrow=c(1,1))
 
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/"
-load( file = paste0(basepath, "REV_app_data.RData"))
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
+
+
+load(paste0(basepath, "output/STEP_04.RData"))
+
 
 data =  st_drop_geometry(tdwg3)
 
@@ -178,7 +183,7 @@ for (scenario in 1:9){
                 paste0("kendall_significance_",scenario,"_S"),
                 paste0("randomised_benefit_table_",scenario,"_S"),
                 paste0("randomised_rank_table_",scenario,"_S")),
-       file = paste0(basepath, "randomisation_outputs_",scenario,"_S.RData"))
+       file = paste0(basepath, "output/randomisation_outputs_",scenario,"_S.RData"))
 
 
 
@@ -203,7 +208,7 @@ for (scenario in 1:9){
   data3$Mean = index[data3$Index][sort_col]  # data$shortfalls_norm_index[data3$Index][sort_col] #st_drop_geometry(tdwg3$benefit_1_S)[data3$Index][sort_col]
   data3 = data3[data3$Index <=cutoff,]
 
-  png(paste0(basepath,"random_benefit_scenario_",scenario,"_S.png"),
+  png(paste0(basepath,"output/random_benefit_scenario_",scenario,"_S.png"),
       width=25, height=20, units="cm", res = 300)
   par(mar=c(7.1, 4.1, 2.1, 2.1), mfrow=c(1,1))
   boxplot(Value~Index, data = data3, xlab="", ylab="Expected benefit", #main= "summed normalised",
@@ -231,7 +236,7 @@ for (scenario in 1:9){
   data3$Mean = index[data3$Index][sort_col]  # data$shortfalls_norm_index[data3$Index][sort_col] #st_drop_geometry(tdwg3$benefit_1_S)[data3$Index][sort_col]
   data3 = data3[data3$Index <=cutoff,]
 
-  png(paste0(basepath,"random_rank_scenario_",scenario,"_S.png"),
+  png(paste0(basepath,"output/random_rank_scenario_",scenario,"_S.png"),
       width=20, height=25, units="cm", res = 300)
   par(mar=c(5.1, 7.1, 4.1, 2.1), mfrow=c(1,1))
   boxplot(Value~Index, data = data3, xlab="Rank", ylab="", #main= "summed normalised",
@@ -408,7 +413,7 @@ for (scenario in 1:9){
                 paste0("kendall_significance_",scenario,"_S_sc"),
                 paste0("randomised_benefit_table_",scenario,"_S_sc"),
                 paste0("randomised_rank_table_",scenario,"_S_sc")),
-       file = paste0(basepath, "randomisation_outputs_",scenario,"_S_sc.RData"))
+       file = paste0(basepath, "output/randomisation_outputs_",scenario,"_S_sc.RData"))
 
 }
 
@@ -431,7 +436,7 @@ for (scenario in 1:9){
   data3$Mean = index[data3$Index][sort_col]
   data3 = data3[data3$Index <=cutoff,]
 
-  png(paste0(basepath,"random_benefit_scenario_",scenario,"_S_sc.png"),
+  png(paste0(basepath,"output/random_benefit_scenario_",scenario,"_S_sc.png"),
       width=25, height=20, units="cm", res = 300)
   par(mar=c(7.1, 4.1, 2.1, 2.1), mfrow=c(1,1))
   boxplot(Value~Index, data = data3, xlab="", ylab="Expected benefit",
@@ -460,7 +465,7 @@ for (scenario in 1:9){
   data3$Mean = index[data3$Index][sort_col]  # data$shortfalls_norm_index[data3$Index][sort_col] #st_drop_geometry(tdwg3$benefit_1_S)[data3$Index][sort_col]
   data3 = data3[data3$Index <=cutoff,]
 
-  png(paste0(basepath,"random_rank_scenario_",scenario,"_S_sc.png"),
+  png(paste0(basepath,"output/random_rank_scenario_",scenario,"_S_sc.png"),
       width=20, height=25, units="cm", res = 300)
   par(mar=c(5.1, 7.1, 4.1, 2.1), mfrow=c(1,1))
   boxplot(Value~Index, data = data3, xlab="Rank", ylab="", #main= "summed normalised",
@@ -494,5 +499,6 @@ for (scenario in 1:9){
 # Save
 tdwg3 = tdwg3 %>% left_join(data)
 
-save(tdwg3, file = paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/REV_app_data_randomisation.RData"))
-write.csv(st_drop_geometry(tdwg3), paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/variables_table_randomisation.csv"))
+save(tdwg3, file = paste0(basepath,"output/STEP_07.RData"))
+write.csv(st_drop_geometry(tdwg3), paste0(basepath,"output/STEP_07.csv"))
+write.csv(st_drop_geometry(tdwg3), paste0(basepath,"output/TableS1.csv"))

@@ -5,12 +5,17 @@ library(cowplot)
 library(sf)
 require(tmap)
 library(dplyr)
+library(classInt)
 sf_use_s2(FALSE)
 
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/"
-path = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_2/"
 
-load( file = paste0(basepath, "REV_app_data.RData"))
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your basepath directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
+
+load(paste0(basepath,"output/STEP_01.RData"))
+
+
 
 ##############################################################################
 ##############################################################################
@@ -18,7 +23,7 @@ load( file = paste0(basepath, "REV_app_data.RData"))
 ##############################################################################
 ##############################################################################
 
-library(classInt)
+
 
 rotate <- function(x) t(apply(x, 2, rev))
 
@@ -85,8 +90,7 @@ darkspots.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
                              crs = PROJ)
 
 
-# write.csv(grid.DT, "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-grid.DT = read.csv( "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
+grid.DT = read.csv(paste0(basepath,"input/gridDT.csv"))
 grid.DT <- data.table::as.data.table(grid.DT)
 
 
@@ -98,14 +102,14 @@ grid.DT <- data.table::as.data.table(grid.DT)
 ##########################################################################################
 
 # values needed once (don't recalculate each time)
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+areas = read.csv(paste0(basepath, "input/twdg3_land_area.csv"))
 
 darkspots.prj$income = normalise(darkspots.prj$PC1)
 darkspots.prj$unprotect = normalise(darkspots.prj$PC2)
-darkspots.prj$linnean_yrs = - normalise(darkspots.prj$discoveries_time_diff)#- normalise(darkspots.prj$dscvrs_t_)
-darkspots.prj$wallacean_yrs = - normalise(darkspots.prj$descriptions_time_diff)#- normalise(darkspots.prj$dscrptns_t)
-darkspots.prj$linnean = darkspots.prj$SR_unknown_norm#darkspots.prj$SR_nk_ # SR_unknown_norm
-darkspots.prj$wallacean = darkspots.prj$SR_nogeoloc_norm #SR_ng_ #
+darkspots.prj$linnean_yrs = - normalise(darkspots.prj$discoveries_time_diff)
+darkspots.prj$wallacean_yrs = - normalise(darkspots.prj$descriptions_time_diff)
+darkspots.prj$linnean = darkspots.prj$SR_unknown_norm
+darkspots.prj$wallacean = darkspots.prj$SR_nogeoloc_norm
 
 #scale
 complete_rows = !is.na(darkspots.prj$SR_unknown)
@@ -141,8 +145,8 @@ data = darkspots.prj
 # create map
 map <- ggplot() +
   geom_sf(data = data, mapping = aes(fill = discoveries_max_year),
-          color = aes(fill = discoveries_max_year),#NA,
-          size = 0.4, show.legend = FALSE) +
+          color = aes(fill = discoveries_max_year),
+          linewidth = 0.4, show.legend = FALSE) +
   geom_sf() +  #+
   geom_point( data= data,
               aes(color =  discoveries_max_year,  #fill = bi_class,
@@ -174,7 +178,7 @@ map
 
 legend <- cowplot::get_legend(ggplot() +geom_sf(data = data, mapping = aes(fill = discoveries_max_year),
                                                 color = aes(fill = discoveries_max_year),#NA,
-                                                size = 0.4, show.legend = TRUE) +
+                                                linewidth = 0.4, show.legend = TRUE) +
                                 geom_sf() +  #+
                                 geom_point( data= data,
                                             aes(color =  discoveries_max_year,  #fill = bi_class,
@@ -220,14 +224,11 @@ finalPlotl <- ggdraw() +
 
 
 finalPlotl
-# ggsave(paste0(basepath, "skyline_linnean_map.pdf"), width = 30, height = 12, units = "cm")
-# ggsave(paste0(basepath, "skyline_linnean_map.png"), bg="white", width = 30, height = 12, units = "cm")
 
 
-
-############
+########################
 # Windplot
-############
+
 
 data = st_drop_geometry(tdwg3)[,c("LEVEL3_NAM","LEVEL1_COD", "discoveries_max_year", "discoveries_y2010")] %>%
   arrange(LEVEL1_COD, discoveries_y2010)
@@ -388,6 +389,7 @@ finalPlotw <- ggdraw() +
 
 finalPlotw
 
+
 ##############
 # Windplot
 ##############
@@ -466,9 +468,6 @@ pw
 
 
 
-# ggsave(paste0(basepath, "skyline_linnean_roseplot.pdf"), width = 15, height = 15, units = "cm")
-
-
 
 
 
@@ -479,17 +478,19 @@ ggarrange(finalPlotl,
           font.label = list(size = 30),
           ncol = 2, nrow = 2, widths = c(1, 0.5))
 
-ggsave(paste0(basepath, "peak_year.pdf"),  width = 40, height = 30,  units = "cm")
-ggsave(paste0(basepath, "peak_year.png"),  width = 40, height = 30,  units = "cm",bg="white")
+ggsave(paste0(basepath, "output/FigureS9.pdf"),  width = 40, height = 30,  units = "cm")
+ggsave(paste0(basepath, "output/FigureS9.png"),  width = 40, height = 30,  units = "cm",bg="white")
 
 
 
 
-
-#############################################
-# Darkspots
-#############################################
-
+##########################################################################################
+##########################################################################################
+#
+#                         PLOT Darkspots
+#
+##########################################################################################
+##########################################################################################
 dim=4
 col.matrix<-colmat(nquantiles=dim,
                    upperleft= "#6eabbd", #rgb(0,150,235, maxColorValue=255),
@@ -557,11 +558,11 @@ finalPlot <- ggdraw() +
 
 finalPlot
 
-# ggsave(paste0(basepath, "time2event_darkspot_map.pdf"), width = 30, height = 12, units = "cm")
-# ggsave(paste0(basepath, "time2event_darkspot_map.png"), bg="white", width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/Figure1a.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/Figure1a.png"), bg="white", width = 30, height = 12, units = "cm")
 
 
-##################################################
+######################
 # scatterplot
 
 scatter <- ggplot() +
@@ -572,11 +573,13 @@ scatter <- ggplot() +
   ) +
   bi_scale_color(pal = custom_pal4, dim=dim)+
   guides(color = "none") +
-  theme_bw(title = "Fisher transformation for bivariate colour scale")
+  xlab("Wallacean Shortfall") +
+  ylab("Linnaean Shortfall") +
+  theme_bw()
 
 scatter
-ggsave(paste0(path, "time2event_darkspot_scatter.pdf"), width = 12, height = 12, units = "cm")
-ggsave(paste0(path, "time2event_darkspot_scatter.png"), bg="white", width = 12, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS3.pdf"), width = 12, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS3.png"), bg="white", width = 12, height = 12, units = "cm")
 
 
 
@@ -626,13 +629,8 @@ label_data$angle<-ifelse(angle < -90, angle+180, angle)
 
 p = ggplot(data, aes(x=as.factor(id), y=value, fill=color)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
   geom_bar(aes(x=as.factor(id), y=value, fill=color), stat="identity", alpha=0.9) +
-  # scale_fill_manual(values=c("darkred" ,"black", "coral" ,"grey")) +
   bi_scale_fill(pal = custom_pal4, dim=dim)+
-  # scale_fill_gradientn(colours=RColorBrewer::brewer.pal(10, "BrBG")) +
-  # scale_fill_brewer(palette = "RdBu") +
-  # ylim(-10,9) +#120) +
   ylim(-max(data$value,na.rm=T)*2,max(data$value,na.rm=T)*3.5) +
-  #ylim(-2,4) +
   theme_minimal() +
   theme(
     legend.position = "none",
@@ -641,13 +639,10 @@ p = ggplot(data, aes(x=as.factor(id), y=value, fill=color)) +       # Note that 
     axis.title.x = element_blank(),
     axis.text = element_blank(),
     axis.title = element_blank(),
-    panel.grid = element_blank()#,
-    # plot.margin = unit(rep(1,4), "cm")
-
+    panel.grid = element_blank()
   ) +
   geom_hline(yintercept = seq(0,max(data$value,na.rm=T),
                               max(data$value,na.rm=T)/5), color = "gray90") +
-  #geom_hline(yintercept = seq(0,2,0.5), color = "gray90") +
   geom_vline(xintercept = seq(1,dim(data)[1],RANK)-0.5, color = "black") +
   coord_polar() +
   geom_text(data = data.frame(x1 = seq((RANK/2),dim(data)[1],RANK),
@@ -655,10 +650,7 @@ p = ggplot(data, aes(x=as.factor(id), y=value, fill=color)) +       # Note that 
                               label = tdwg1_names$LEVEL1_NAM[1:8]),
             aes(x=x1, y=y1, label = label),
             color="black", fontface="bold",alpha=0.9, size=4,
-            # angle= ifelse(label_data$angle[seq(5,81, 10)]>0 , label_data$angle[seq(5,81, 10)]-90,
-            #               label_data$angle[seq(5,81, 10)]+90),
-            # hjust=0.2,
-            inherit.aes = FALSE#, linetype = 0, size = 8,upright = TRUE
+            inherit.aes = FALSE
   ) +
 
   geom_text(data=label_data, aes(x=id, y=value+0.001,#3000,#
@@ -668,21 +660,18 @@ p = ggplot(data, aes(x=as.factor(id), y=value, fill=color)) +       # Note that 
 
 p
 
+ggsave(paste0(basepath, "Figure1b.pdf"),  width = 40, height = 15,  units = "cm")
+ggsave(paste0(basepath, "Figure1b.png"),  width = 40, height = 15,   units = "cm",bg="white")
 
 
-
-# ggsave(paste0(basepath, "time2event_darkspot_roseplot.pdf"), width = 15, height = 15, units = "cm")
-
-
+### all together
 ggarrange(finalPlot,
           p , labels = c("a.", "b."),
           font.label = list(size = 30),
           ncol = 2, nrow = 1, widths = c(1, 0.5))
 
-ggsave(paste0(basepath, "darkspots.pdf"),  width = 40, height = 15,  units = "cm")
-ggsave(paste0(basepath, "darkspots.png"),  width = 40, height = 15,   units = "cm",bg="white")
-
-
+ggsave(paste0(basepath, "Figure1.pdf"),  width = 40, height = 15,  units = "cm")
+ggsave(paste0(basepath, "Figure1.png"),  width = 40, height = 15,   units = "cm",bg="white")
 
 
 
@@ -789,8 +778,8 @@ finalPlot <- ggdraw() +
 
 finalPlot
 
-ggsave(paste0(path, "time2event_darkspot_uncertainty_map.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(path, "time2event_darkspot_uncertainty_map.png"), bg="white", width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS5a.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS5a.png"), bg="white", width = 30, height = 12, units = "cm")
 
 
 
@@ -809,7 +798,7 @@ SAR <- function(x,y, ref_area_km2=10000){ # Species-Area-Regression
   (x*ref_area_km2^z)/(y^z)
 }
 
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+areas = read.csv(paste0(basepath, "input/twdg3_land_area.csv"))
 
 
 #
@@ -884,8 +873,8 @@ finalPlot <- ggdraw() +
 
 finalPlot
 
-# ggsave(paste0(basepath, "time2event_darkspot_map_sc.pdf"), width = 30, height = 12, units = "cm")
-# ggsave(paste0(basepath, "time2event_darkspot_map_sc.png"), bg="white", width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS2a.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS2a.png"), bg="white", width = 30, height = 12, units = "cm")
 
 
 ##################################################
@@ -899,14 +888,16 @@ scatter <- ggplot() +
   ) +
   bi_scale_color(pal = custom_pal4, dim=dim)+
   guides(color = "none") +
+  xlab("Scaled Wallacean Shortfall") +
+  ylab("Scaled Linnaean Shortfall") +
   theme_bw()
 
 scatter
-ggsave(paste0(path, "time2event_darkspot_scatter_sc.pdf"), width = 12, height = 12, units = "cm")
-ggsave(paste0(path, "time2event_darkspot_scatter_sc.png"), bg="white", width = 12, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS4.pdf"), width = 12, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS4.png"), bg="white", width = 12, height = 12, units = "cm")
 
 
-
+####################################################
 # windplot
 
 bi_label <- bi_class(darkspots.prj,y=linnean_sc, x=wallacean_sc,
@@ -983,11 +974,7 @@ p = ggplot(data, aes(x=as.factor(id), y=value, fill=color)) +       # Note that 
             angle= label_data$angle, inherit.aes = FALSE )
 
 p
-# ggsave(paste0(basepath, "time2event_darkspot_roseplot_sc.pdf"), width = 15, height = 15, units = "cm")
-
-
-
-# ggsave(paste0(basepath, "time2event_darkspot_roseplot.pdf"), width = 15, height = 15, units = "cm")
+ggsave(paste0(basepath, "output/FigureS2b.pdf"), width = 15, height = 15, units = "cm")
 
 
 ggarrange(finalPlot,
@@ -995,8 +982,8 @@ ggarrange(finalPlot,
           font.label = list(size = 30),
           ncol = 2, nrow = 1, widths = c(1, 0.5))
 
-ggsave(paste0(basepath, "darkspots_sc.pdf"),  width = 40, height = 15,  units = "cm")
-ggsave(paste0(basepath, "darkspots_sc.png"),  width = 40, height = 15,   units = "cm",bg="white")
+ggsave(paste0(basepath, "output/FigureS2.pdf"),  width = 40, height = 15,  units = "cm")
+ggsave(paste0(basepath, "output/FigureS2.png"),  width = 40, height = 15,   units = "cm",bg="white")
 
 
 
@@ -1110,6 +1097,6 @@ finalPlot <- ggdraw() +
 
 
 finalPlot
-ggsave(paste0(path, "time2event_darkspot_uncertainty_map_sc.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(path, "time2event_darkspot_uncertainty_map_sc.png"), bg="white", width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS5b.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(basepath, "output/FigureS5b.png"), bg="white", width = 30, height = 12, units = "cm")
 

@@ -7,8 +7,12 @@ require(tmap)
 library(classInt)
 
 
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/"
-load( file = paste0(basepath, "REV_app_data_randomisation.RData"))
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
+
+
+load(paste0(basepath, "output/STEP_07.RData"))
 
 
 ##############################################################################
@@ -69,9 +73,7 @@ darkspots.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 
 
 #####################################################################
-# write.csv(grid.DT, "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-grid.DT = read.csv( "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-
+grid.DT = read.csv(paste0(basepath,"input/gridDT.csv"))
 grid.DT <- data.table::as.data.table(grid.DT)
 
 
@@ -81,7 +83,7 @@ grid.DT <- data.table::as.data.table(grid.DT)
 ##########################################################################################
 ##########################################################################################
 
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+areas = read.csv(paste0(basepath,"input/twdg3_land_area.csv"))
 
 darkspots.prj$linnean_yrs = - normalise(darkspots.prj$discoveries_time_diff)#- normalise(darkspots.prj$dscvrs_t_)
 darkspots.prj$wallacean_yrs = - normalise(darkspots.prj$descriptions_time_diff)#- normalise(darkspots.prj$dscrptns_t)
@@ -432,8 +434,8 @@ for (scenario in 1:9){
             labels = c("a.", "b.","c.","d."),
             font.label = list(size = 30),
             ncol = 2, nrow = 2, widths = c(1, 0.5))
-  ggsave(paste0(basepath, "scenario_",scenario,"_random.pdf"),  width = 40, height = 30, units = "cm")
-  ggsave(paste0(basepath, "scenario_",scenario,"_random.png"),  width = 40, height = 30, units = "cm",bg="white")
+  ggsave(paste0(basepath, "output/FigureS",scenario+21,".pdf"),  width = 40, height = 30, units = "cm")
+  ggsave(paste0(basepath, "output/FigureS",scenario+21,".png"),  width = 40, height = 30, units = "cm",bg="white")
 
 
 }

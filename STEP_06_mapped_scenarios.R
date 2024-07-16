@@ -4,10 +4,15 @@ library(ggplot2)
 library(cowplot)
 library(sf)
 require(tmap)
+library(classInt)
+
+# Unzip https://github.com/DarkSpots/scenario_modelling/data.zip and make it your directory
+basepath = "data/"
+# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_publication/data/"
 
 
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/"
-load( file = paste0(basepath, "REV_app_data.RData"))
+load(paste0(basepath, "output/STEP_04.RData"))
+
 
 
 ##############################################################################
@@ -16,7 +21,7 @@ load( file = paste0(basepath, "REV_app_data.RData"))
 ##############################################################################
 ##############################################################################
 
-library(classInt)
+
 
 rotate <- function(x) t(apply(x, 2, rev))
 
@@ -73,9 +78,7 @@ darkspots.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 
 
 #####################################################################
-# write.csv(grid.DT, "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-grid.DT = read.csv( "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-
+grid.DT = read.csv(paste0(basepath,"input/gridDT.csv"))
 grid.DT <- data.table::as.data.table(grid.DT)
 
 
@@ -85,7 +88,7 @@ grid.DT <- data.table::as.data.table(grid.DT)
 ##########################################################################################
 ##########################################################################################
 
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+areas = read.csv(paste0(basepath,"input/twdg3_land_area.csv"))
 
 
 darkspots.prj$linnean_yrs = - normalise(darkspots.prj$discoveries_time_diff)
@@ -111,7 +114,7 @@ darkspots.prj$wallacean_sc[complete_rows] = normalise(SAR(darkspots.prj$SR_nogeo
 ##########################################################################################
 
 
-for (scenario in 1:9){
+for (scenario in 2:9){
 
   darkspots.prj["benefit"] = st_drop_geometry(darkspots.prj[paste0("benefit_",scenario,"_S")])
   data = darkspots.prj
@@ -426,8 +429,8 @@ for (scenario in 1:9){
             font.label = list(size = 30),
             ncol = 2, nrow = 2, widths = c(1, 0.5))
 
-  ggsave(paste0(basepath, "scenario_",scenario,".pdf"),  width = 40, height = 30, units = "cm")
-  ggsave(paste0(basepath, "scenario_",scenario,".png"),  width = 40, height = 30, units = "cm",bg="white")
+  ggsave(paste0(basepath, "output/FigureS",scenario+12,".pdf"),  width = 40, height = 30, units = "cm")
+  ggsave(paste0(basepath, "output/FigureS",scenario+12,".png"),  width = 40, height = 30, units = "cm",bg="white")
 
 }
 
